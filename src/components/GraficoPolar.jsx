@@ -1,0 +1,163 @@
+import { NECESIDADES, TIPOS, TIPO_POR_ID } from '../maxneef.js';
+
+const ANCHO = 640;
+const ALTO = 548;
+const CX = ANCHO / 2;
+const CY = 276;
+const R_MIN = 44; // anillo 1 (Destructor)
+const R_MAX = 204; // anillo 5 (Sinérgico)
+const PASO = (R_MAX - R_MIN) / (TIPOS.length - 1);
+
+const radioDeAnillo = (indice) => R_MIN + indice * PASO;
+const anguloDeEje = (i) => (-90 + (360 / NECESIDADES.length) * i) * (Math.PI / 180);
+const punto = (angulo, r) => [CX + r * Math.cos(angulo), CY + r * Math.sin(angulo)];
+
+/**
+ * Área de un satisfactor: une, en el orden de los ejes, los puntos de las necesidades que impacta,
+ * ubicados en el anillo de su tipo. Con una o dos necesidades el área se cierra en el centro.
+ */
+function puntosDeArea(s) {
+  const r = radioDeAnillo(TIPOS.findIndex((t) => t.id === s.tipo));
+  const pts = NECESIDADES.flatMap((nec, i) => (s.necesidades.includes(nec) ? [punto(anguloDeEje(i), r)] : []));
+  if (pts.length < 3) pts.unshift([CX, CY]);
+  return pts.map((p) => p.join(',')).join(' ');
+}
+
+/**
+ * Gráfico polar de anillos concéntricos. Cada eje es una necesidad; cada anillo, un tipo de
+ * satisfactor en orden ordinal (centro → afuera). El punto de cada eje se ubica en el anillo del
+ * tipo predominante. Si hay empate se marcan todos los tipos empatados con un punto hueco.
+ * Opcionalmente, cada satisfactor dibuja un área sombreada que une las necesidades que impacta.
+ */
+export default function GraficoPolar({ frecuencias, predominancia, satisfactores = [], mostrarAreas = true, resaltado, onResaltar }) {
+  return (
+    <svg
+      viewBox={`0 0 ${ANCHO} ${ALTO}`}
+      role="img"
+      aria-label="Gráfico de anillos: tipo de satisfactor predominante por necesidad"
+      className="h-auto w-full max-w-[640px]"
+    >
+      {/* Bandas y anillos */}
+      {TIPOS.map((t, i) => (
+        <circle
+          key={t.id}
+          cx={CX}
+          cy={CY}
+          r={radioDeAnillo(i)}
+          fill="none"
+          stroke={t.color}
+          strokeOpacity={0.35}
+          strokeWidth={1.25}
+        />
+      ))}
+      <circle cx={CX} cy={CY} r={3} fill="#16213A" />
+
+      {/* Ejes y nombres de necesidad */}
+      {NECESIDADES.map((nec, i) => {
+        const a = anguloDeEje(i);
+        const [x2, y2] = punto(a, R_MAX + 10);
+        const [lx, ly] = punto(a, R_MAX + 26);
+        const cos = Math.cos(a);
+        const anchor = Math.abs(cos) < 0.2 ? 'middle' : cos > 0 ? 'start' : 'end';
+        const sinDatos = frecuencias[nec].total === 0;
+        const dy = Math.sin(a) > 0.6 ? 14 : Math.sin(a) < -0.6 ? -4 : 5;
+        return (
+          <g key={nec}>
+            <line x1={CX} y1={CY} x2={x2} y2={y2} stroke="#8C94A8" strokeOpacity={0.55} strokeWidth={1} />
+            <text
+              x={lx}
+              y={ly + dy}
+              textAnchor={anchor}
+              fontFamily='"IBM Plex Sans", system-ui, sans-serif'
+              fontSize={17}
+              fontWeight={600}
+              fill={sinDatos ? '#8C94A8' : '#16213A'}
+            >
+              {nec}
+            </text>
+          </g>
+        );
+      })}
+
+      {/* Número de cada anillo, en el hueco entre el primer y el segundo eje (la leyenda los nombra) */}
+      {TIPOS.map((t, i) => {
+        const a = (anguloDeEje(0) + anguloDeEje(1)) / 2;
+        const [x, y] = punto(a, radioDeAnillo(i));
+        return (
+          <text
+            key={t.id}
+            x={x}
+            y={y + 4}
+            textAnchor="middle"
+            fontFamily='"IBM Plex Mono", ui-monospace, monospace'
+            fontSize={12}
+            fontWeight={600}
+            fill={t.color}
+            stroke="#FFFFFF"
+            strokeWidth={4}
+            paintOrder="stroke"
+          >
+            {i + 1}
+          </text>
+        );
+      })}
+
+      {/* Áreas de cobertura de cada satisfactor (debajo de los puntos de predominancia) */}
+      {mostrarAreas && (
+        <g onMouseLeave={() => onResaltar?.(null)}>
+          {satisfactores.map((s) => {
+            const tipo = TIPO_POR_ID[s.tipo];
+            const activo = resaltado === s.id;
+            const atenuado = resaltado && !activo;
+            return (
+              <polygon
+                key={s.id}
+                points={puntosDeArea(s)}
+                fill={tipo.color}
+                fillOpacity={activo ? 0.32 : atenuado ? 0.025 : 0.07}
+                stroke={tipo.color}
+                strokeOpacity={activo ? 0.95 : atenuado ? 0.12 : 0.45}
+                strokeWidth={activo ? 2 : 1}
+                strokeLinejoin="round"
+                onMouseEnter={() => onResaltar?.(s.id)}
+                style={{ transition: 'fill-opacity 200ms, stroke-opacity 200ms' }}
+              >
+                <title>{`${s.nombre} (${tipo.nombre}): ${s.necesidades.join(', ')}`}</title>
+              </polygon>
+            );
+          })}
+        </g>
+      )}
+
+      {/* Puntos de predominancia */}
+      {NECESIDADES.map((nec, i) => {
+        const ids = predominancia[nec];
+        const empate = ids.length > 1;
+        const a = anguloDeEje(i);
+        return ids.map((id) => {
+          const tipo = TIPO_POR_ID[id];
+          const [x, y] = punto(a, radioDeAnillo(TIPOS.indexOf(tipo)));
+          const n = frecuencias[nec][id];
+          return (
+            <g
+              key={`${nec}-${id}`}
+              style={{ transform: `translate(${x}px, ${y}px)`, transition: 'transform 400ms ease' }}
+            >
+              <title>
+                {`${nec}: ${tipo.nombre}${empate ? ' (empate)' : ''} · ${n} de ${frecuencias[nec].total}`}
+              </title>
+              {empate ? (
+                <circle r={7.5} fill="#FFFFFF" stroke={tipo.color} strokeWidth={3} />
+              ) : (
+                <>
+                  <circle r={13} fill={tipo.color} fillOpacity={0.18} />
+                  <circle r={8} fill={tipo.color} stroke="#FFFFFF" strokeWidth={2} />
+                </>
+              )}
+            </g>
+          );
+        });
+      })}
+    </svg>
+  );
+}

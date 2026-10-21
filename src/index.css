@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { color-scheme: light; }
+  body {
+    @apply bg-papel text-marino font-sans antialiased;
+  }
+  h1, h2, h3 { text-wrap: balance; }
+  :focus-visible { @apply outline-none ring-2 ring-naranja ring-offset-2 ring-offset-papel; }
+}
+
+@layer components {
+  .etiqueta {
+    @apply text-[11px] font-semibold uppercase tracking-[0.08em] text-marino-500;
+  }
+  .campo {
+    @apply w-full rounded-md border border-linea bg-white px-3 py-2 text-sm text-marino placeholder:text-marino-300
+           transition focus:border-naranja focus:outline-none focus:ring-2 focus:ring-naranja/30;
+  }
+  .panel {
+    @apply rounded-xl border border-linea bg-white;
+  }
+  .num { font-variant-numeric: tabular-nums; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
