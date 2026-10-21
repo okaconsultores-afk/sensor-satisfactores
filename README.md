@@ -10,8 +10,12 @@ estudio como archivo `.json`.
 ## Funciones
 
 - **Problema de investigación**: campo de texto que encabeza el informe.
-- **Registro de satisfactores**: nombre, categoría existencial (Ser, Tener, Hacer, Estar), tipo
-  (Destructor, Pseudo-satisfactor, Inhibidor, Singular, Sinérgico) y necesidades que impacta.
+- **Registro de satisfactores**: nombre, categoría existencial (Ser, Tener, Hacer, Estar) y, para
+  cada necesidad que impacta, el tipo con que opera en ella (Destructor, Pseudo-satisfactor,
+  Inhibidor, Singular, Sinérgico). Un mismo satisfactor puede ser, por ejemplo, pseudo-satisfactor
+  para Creación, destructor para Entendimiento e inhibidor para Ocio.
+- **Regla del Singular**: un satisfactor Singular atiende una sola necesidad. Al marcar Singular en
+  una necesidad, las demás quedan bloqueadas.
 - **Gráfico de anillos concéntricos** que se actualiza en tiempo real, con un área sombreada por satisfactor que une las necesidades que impacta (se puede ocultar).
 - **Tabla de frecuencias** (tipo × necesidad) y **registro** completo de satisfactores.
 - **Descargar informe** en PDF (A4) o imagen PNG.
@@ -27,7 +31,9 @@ estudio como archivo `.json`.
 - **Empates**: si dos o más tipos comparten la frecuencia máxima, se marcan todos con un punto
   hueco y la tabla lo indica como "Empate".
 
-La lógica está en `src/maxneef.js` (`calcularFrecuencias` y `calcularPredominancia`).
+Las frecuencias cuentan cada par necesidad–tipo de cada satisfactor. La lógica está en
+`src/maxneef.js` (`calcularFrecuencias`, `calcularPredominancia` y `validarImpactos`). Los estudios
+guardados con la primera versión (un solo tipo por satisfactor) se convierten automáticamente.
 
 ## Desarrollo local
 

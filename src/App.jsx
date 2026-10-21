@@ -3,7 +3,7 @@ import FormularioSatisfactor from './components/FormularioSatisfactor.jsx';
 import GraficoPolar from './components/GraficoPolar.jsx';
 import TablaFrecuencias from './components/TablaFrecuencias.jsx';
 import TablaRegistro from './components/TablaRegistro.jsx';
-import { CATEGORIAS, EJEMPLO, NECESIDADES, TIPOS, TIPO_POR_ID, calcularFrecuencias, calcularPredominancia } from './maxneef.js';
+import { EJEMPLO, NECESIDADES, TIPOS, calcularFrecuencias, calcularPredominancia, normalizarSatisfactor } from './maxneef.js';
 
 const CLAVE = 'evaluador-max-neef:v1';
 const nuevoId = () => Math.random().toString(36).slice(2, 10);
@@ -11,9 +11,9 @@ const nuevoId = () => Math.random().toString(36).slice(2, 10);
 function estadoInicial() {
   try {
     const guardado = JSON.parse(localStorage.getItem(CLAVE));
-    if (guardado && Array.isArray(guardado.satisfactores)) return { ...guardado, ejemplo: !!guardado.ejemplo };
+    if (guardado && Array.isArray(guardado.satisfactores)) return { ...normalizar(guardado), ejemplo: !!guardado.ejemplo };
   } catch {
-    /* sin almacenamiento disponible */
+    /* sin almacenamiento disponible o datos dañados */
   }
   return cargarEjemplo();
 }
@@ -26,22 +26,16 @@ function cargarEjemplo() {
   };
 }
 
-// Valida un estudio importado desde .json y descarta lo que no corresponde al modelo.
+// Valida un estudio guardado o importado (.json), incluido el formato de la primera versión.
 function normalizar(datos) {
   if (!datos || !Array.isArray(datos.satisfactores)) throw new Error('formato');
   return {
     problema: String(datos.problema ?? ''),
     ejemplo: false,
     satisfactores: datos.satisfactores
-      .filter((s) => s && s.nombre && TIPO_POR_ID[s.tipo])
-      .map((s) => ({
-        id: nuevoId(),
-        nombre: String(s.nombre),
-        categoria: CATEGORIAS.includes(s.categoria) ? s.categoria : CATEGORIAS[0],
-        tipo: s.tipo,
-        necesidades: NECESIDADES.filter((n) => (s.necesidades || []).includes(n)),
-      }))
-      .filter((s) => s.necesidades.length),
+      .map(normalizarSatisfactor)
+      .filter(Boolean)
+      .map((s) => ({ ...s, id: nuevoId() })),
   };
 }
 
@@ -313,7 +307,7 @@ export default function App() {
                 escala de valor ni de cantidad; no se suman ni se promedian. Cada punto marca el tipo que más se repite en esa
                 necesidad. Las frecuencias exactas están en la tabla.
                 {mostrarAreas &&
-                  ' Cada área sombreada une las necesidades que impacta un satisfactor, a la altura del anillo de su tipo (con una o dos necesidades, el área parte del centro); donde se superponen varias, el tono se intensifica. Pase el cursor sobre un área o una fila del registro para resaltarla.'}
+                  ' Cada área sombreada une las necesidades que impacta un satisfactor, cada una en el anillo del tipo con que opera allí (con una o dos necesidades, el área parte del centro). Si opera igual en todas, el área toma el color de ese tipo; si combina tipos, es azul oscuro. Donde se superponen varias áreas, el tono se intensifica. Pase el cursor sobre un área o una fila del registro para resaltarla.'}
               </p>
             </section>
 

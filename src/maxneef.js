@@ -52,6 +52,20 @@ export const TIPOS = [
 export const TIPO_POR_ID = Object.fromEntries(TIPOS.map((t) => [t.id, t]));
 
 /**
+ * Un satisfactor tiene `impactos`: una lista de { necesidad, tipo }. Un mismo satisfactor puede
+ * operar de forma distinta en cada necesidad (p. ej. pseudo-satisfactor para Creación y
+ * destructor para Entendimiento).
+ */
+
+/** Un satisfactor Singular satisface una sola necesidad: si tiene algún impacto singular, debe ser el único. */
+export function validarImpactos(impactos) {
+  if (impactos.length === 0) return 'Asigne un tipo de satisfactor al menos a una necesidad.';
+  if (impactos.length > 1 && impactos.some((i) => i.tipo === 'singular'))
+    return 'Un satisfactor Singular atiende una sola necesidad.';
+  return null;
+}
+
+/**
  * Cuenta cuántos satisfactores de cada tipo recaen sobre cada necesidad.
  * Devuelve { [necesidad]: { [tipoId]: n, total: n } }.
  */
@@ -62,10 +76,10 @@ export function calcularFrecuencias(satisfactores) {
     for (const t of TIPOS) tabla[nec][t.id] = 0;
   }
   for (const s of satisfactores) {
-    for (const nec of s.necesidades) {
-      if (!tabla[nec]) continue;
-      tabla[nec][s.tipo] += 1;
-      tabla[nec].total += 1;
+    for (const { necesidad, tipo } of s.impactos) {
+      if (!tabla[necesidad] || !TIPO_POR_ID[tipo]) continue;
+      tabla[necesidad][tipo] += 1;
+      tabla[necesidad].total += 1;
     }
   }
   return tabla;
@@ -86,26 +100,52 @@ export function calcularPredominancia(frecuencias) {
   return res;
 }
 
+/**
+ * Convierte un satisfactor guardado o importado al modelo actual. Acepta también el formato de la
+ * primera versión ({ tipo, necesidades }), en el que un único tipo valía para todas sus necesidades.
+ * Devuelve null si no es válido.
+ */
+export function normalizarSatisfactor(s) {
+  if (!s || !s.nombre) return null;
+  const crudos = Array.isArray(s.impactos)
+    ? s.impactos
+    : (s.necesidades || []).map((necesidad) => ({ necesidad, tipo: s.tipo }));
+  let impactos = NECESIDADES.flatMap((nec) => {
+    const i = crudos.find((c) => c && c.necesidad === nec && TIPO_POR_ID[c.tipo]);
+    return i ? [{ necesidad: nec, tipo: i.tipo }] : [];
+  });
+  // En la primera versión un Singular podía tener varias necesidades: se conserva solo la primera
+  if (!Array.isArray(s.impactos) && s.tipo === 'singular') impactos = impactos.slice(0, 1);
+  if (validarImpactos(impactos)) return null;
+  return {
+    nombre: String(s.nombre),
+    categoria: CATEGORIAS.includes(s.categoria) ? s.categoria : CATEGORIAS[0],
+    impactos,
+  };
+}
+
+const imp = (pares) => Object.entries(pares).map(([necesidad, tipo]) => ({ necesidad, tipo }));
+
 export const EJEMPLO = {
   problema:
     '¿De qué manera los satisfactores presentes en la vida comunitaria del barrio inciden en la realización de las necesidades humanas fundamentales de sus jóvenes?',
   satisfactores: [
-    { nombre: 'Huerta comunitaria autogestionada', categoria: 'Hacer', tipo: 'sinergico', necesidades: ['Subsistencia', 'Participación', 'Entendimiento', 'Identidad'] },
-    { nombre: 'Asamblea vecinal mensual', categoria: 'Estar', tipo: 'sinergico', necesidades: ['Participación', 'Identidad', 'Libertad'] },
-    { nombre: 'Videojuegos en solitario por horas', categoria: 'Hacer', tipo: 'pseudo', necesidades: ['Ocio'] },
-    { nombre: 'Cámaras de vigilancia en la calle', categoria: 'Tener', tipo: 'pseudo', necesidades: ['Protección'] },
-    { nombre: 'Presencia de pandillas armadas', categoria: 'Estar', tipo: 'destructor', necesidades: ['Protección', 'Libertad', 'Afecto'] },
-    { nombre: 'Comedor escolar', categoria: 'Tener', tipo: 'singular', necesidades: ['Subsistencia'] },
-    { nombre: 'Clases memorísticas y verticales', categoria: 'Hacer', tipo: 'inhibidor', necesidades: ['Entendimiento', 'Creación'] },
-    { nombre: 'Familia sobreprotectora', categoria: 'Ser', tipo: 'inhibidor', necesidades: ['Protección', 'Libertad'] },
-    { nombre: 'Grupo de música tradicional', categoria: 'Hacer', tipo: 'sinergico', necesidades: ['Creación', 'Identidad', 'Ocio', 'Afecto'] },
-    { nombre: 'Consumo de alcohol en fiestas', categoria: 'Hacer', tipo: 'destructor', necesidades: ['Ocio', 'Afecto'] },
-    { nombre: 'Biblioteca barrial', categoria: 'Estar', tipo: 'singular', necesidades: ['Entendimiento'] },
-    { nombre: 'Extorsión a comercios locales', categoria: 'Estar', tipo: 'destructor', necesidades: ['Protección', 'Subsistencia'] },
-    { nombre: 'Mercado de trueque', categoria: 'Hacer', tipo: 'singular', necesidades: ['Subsistencia'] },
-    { nombre: 'Taller de lectura entre generaciones', categoria: 'Hacer', tipo: 'sinergico', necesidades: ['Entendimiento', 'Afecto'] },
-    { nombre: 'Torneo de fútbol barrial', categoria: 'Hacer', tipo: 'sinergico', necesidades: ['Participación', 'Afecto', 'Identidad'] },
-    { nombre: 'Centro comercial como único lugar de encuentro', categoria: 'Estar', tipo: 'pseudo', necesidades: ['Ocio', 'Afecto', 'Identidad'] },
-    { nombre: 'Toque de queda impuesto por grupos ilegales', categoria: 'Estar', tipo: 'destructor', necesidades: ['Libertad', 'Participación'] },
+    { nombre: 'Huerta comunitaria autogestionada', categoria: 'Hacer', impactos: imp({ Subsistencia: 'sinergico', Entendimiento: 'sinergico', 'Participación': 'sinergico', Identidad: 'sinergico' }) },
+    { nombre: 'Asamblea vecinal mensual', categoria: 'Estar', impactos: imp({ 'Participación': 'sinergico', Identidad: 'sinergico', Libertad: 'sinergico' }) },
+    { nombre: 'Videojuegos en solitario por horas', categoria: 'Hacer', impactos: imp({ Afecto: 'inhibidor', Ocio: 'pseudo', 'Creación': 'inhibidor' }) },
+    { nombre: 'Cámaras de vigilancia en la calle', categoria: 'Tener', impactos: imp({ 'Protección': 'pseudo', Libertad: 'pseudo' }) },
+    { nombre: 'Presencia de pandillas armadas', categoria: 'Estar', impactos: imp({ 'Protección': 'destructor', Afecto: 'pseudo', Identidad: 'pseudo', Libertad: 'destructor' }) },
+    { nombre: 'Comedor escolar', categoria: 'Tener', impactos: imp({ Subsistencia: 'singular' }) },
+    { nombre: 'Clases memorísticas y verticales', categoria: 'Hacer', impactos: imp({ Entendimiento: 'pseudo', 'Creación': 'destructor', Ocio: 'inhibidor' }) },
+    { nombre: 'Familia sobreprotectora', categoria: 'Ser', impactos: imp({ 'Protección': 'inhibidor', Afecto: 'sinergico', Libertad: 'inhibidor' }) },
+    { nombre: 'Grupo de música tradicional', categoria: 'Hacer', impactos: imp({ Afecto: 'sinergico', Ocio: 'sinergico', 'Creación': 'sinergico', Identidad: 'sinergico' }) },
+    { nombre: 'Consumo de alcohol en fiestas', categoria: 'Hacer', impactos: imp({ Afecto: 'pseudo', Ocio: 'destructor' }) },
+    { nombre: 'Biblioteca barrial', categoria: 'Estar', impactos: imp({ Entendimiento: 'singular' }) },
+    { nombre: 'Extorsión a comercios locales', categoria: 'Estar', impactos: imp({ Subsistencia: 'destructor', 'Protección': 'destructor' }) },
+    { nombre: 'Mercado de trueque', categoria: 'Hacer', impactos: imp({ Subsistencia: 'singular' }) },
+    { nombre: 'Taller de lectura entre generaciones', categoria: 'Hacer', impactos: imp({ Afecto: 'sinergico', Entendimiento: 'sinergico', 'Creación': 'sinergico' }) },
+    { nombre: 'Torneo de fútbol barrial', categoria: 'Hacer', impactos: imp({ Afecto: 'sinergico', 'Participación': 'sinergico', Ocio: 'sinergico' }) },
+    { nombre: 'Centro comercial como único lugar de encuentro', categoria: 'Estar', impactos: imp({ Ocio: 'pseudo', Identidad: 'pseudo', 'Participación': 'inhibidor' }) },
+    { nombre: 'Toque de queda impuesto por grupos ilegales', categoria: 'Estar', impactos: imp({ 'Participación': 'destructor', Libertad: 'destructor', 'Protección': 'destructor' }) },
   ],
 };

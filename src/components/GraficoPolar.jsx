@@ -14,13 +14,22 @@ const punto = (angulo, r) => [CX + r * Math.cos(angulo), CY + r * Math.sin(angul
 
 /**
  * Área de un satisfactor: une, en el orden de los ejes, los puntos de las necesidades que impacta,
- * ubicados en el anillo de su tipo. Con una o dos necesidades el área se cierra en el centro.
+ * cada uno en el anillo del tipo con que opera en esa necesidad. Con una o dos necesidades el área
+ * se cierra en el centro.
  */
 function puntosDeArea(s) {
-  const r = radioDeAnillo(TIPOS.findIndex((t) => t.id === s.tipo));
-  const pts = NECESIDADES.flatMap((nec, i) => (s.necesidades.includes(nec) ? [punto(anguloDeEje(i), r)] : []));
+  const pts = NECESIDADES.flatMap((nec, i) => {
+    const imp = s.impactos.find((x) => x.necesidad === nec);
+    return imp ? [punto(anguloDeEje(i), radioDeAnillo(TIPOS.indexOf(TIPO_POR_ID[imp.tipo])))] : [];
+  });
   if (pts.length < 3) pts.unshift([CX, CY]);
   return pts.map((p) => p.join(',')).join(' ');
+}
+
+/** Color del área: el del tipo si el satisfactor opera igual en todas sus necesidades; si no, neutro. */
+function colorDeArea(s) {
+  const tipos = new Set(s.impactos.map((i) => i.tipo));
+  return tipos.size === 1 ? TIPO_POR_ID[[...tipos][0]].color : '#16213A';
 }
 
 /**
@@ -106,23 +115,23 @@ export default function GraficoPolar({ frecuencias, predominancia, satisfactores
       {mostrarAreas && (
         <g onMouseLeave={() => onResaltar?.(null)}>
           {satisfactores.map((s) => {
-            const tipo = TIPO_POR_ID[s.tipo];
+            const color = colorDeArea(s);
             const activo = resaltado === s.id;
             const atenuado = resaltado && !activo;
             return (
               <polygon
                 key={s.id}
                 points={puntosDeArea(s)}
-                fill={tipo.color}
+                fill={color}
                 fillOpacity={activo ? 0.32 : atenuado ? 0.025 : 0.07}
-                stroke={tipo.color}
+                stroke={color}
                 strokeOpacity={activo ? 0.95 : atenuado ? 0.12 : 0.45}
                 strokeWidth={activo ? 2 : 1}
                 strokeLinejoin="round"
                 onMouseEnter={() => onResaltar?.(s.id)}
                 style={{ transition: 'fill-opacity 200ms, stroke-opacity 200ms' }}
               >
-                <title>{`${s.nombre} (${tipo.nombre}): ${s.necesidades.join(', ')}`}</title>
+                <title>{`${s.nombre}: ${s.impactos.map((i) => `${i.necesidad} (${TIPO_POR_ID[i.tipo].nombre})`).join(', ')}`}</title>
               </polygon>
             );
           })}
