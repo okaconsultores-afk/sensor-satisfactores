@@ -3,8 +3,19 @@ import { CATEGORIAS, NECESIDADES, TIPOS, validarImpactos } from '../maxneef.js';
 
 const VACIO = { nombre: '', categoria: 'Ser', impactos: {} };
 
-export default function FormularioSatisfactor({ onAgregar }) {
-  const [datos, setDatos] = useState(VACIO);
+const desdeSatisfactor = (s) => ({
+  nombre: s.nombre,
+  categoria: s.categoria,
+  impactos: Object.fromEntries(s.impactos.map((i) => [i.necesidad, i.tipo])),
+});
+
+/**
+ * Formulario para registrar un satisfactor nuevo o, si recibe `inicial`, editar uno existente.
+ * El componente padre lo vuelve a montar (prop `key`) al cambiar de satisfactor.
+ */
+export default function FormularioSatisfactor({ inicial, onGuardar, onCancelar }) {
+  const editando = !!inicial;
+  const [datos, setDatos] = useState(() => (inicial ? desdeSatisfactor(inicial) : VACIO));
   const [errores, setErrores] = useState({});
   const [nota, setNota] = useState('');
 
@@ -44,8 +55,9 @@ export default function FormularioSatisfactor({ onAgregar }) {
     if (errorImpactos) nuevos.impactos = errorImpactos;
     setErrores(nuevos);
     if (Object.keys(nuevos).length) return;
-    onAgregar({ nombre: datos.nombre.trim(), categoria: datos.categoria, impactos });
+    onGuardar({ nombre: datos.nombre.trim(), categoria: datos.categoria, impactos });
     setNota('');
+    if (editando) return;
     // Se conserva la categoría para agilizar registros consecutivos similares
     setDatos((d) => ({ ...VACIO, categoria: d.categoria }));
   };
@@ -160,12 +172,23 @@ export default function FormularioSatisfactor({ onAgregar }) {
         {errores.impactos && <p className="text-xs text-rojo">{errores.impactos}</p>}
       </fieldset>
 
-      <button
-        type="submit"
-        className="rounded-md bg-marino px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-marino-700"
-      >
-        Agregar satisfactor
-      </button>
+      <div className="flex gap-2">
+        <button
+          type="submit"
+          className="flex-1 rounded-md bg-marino px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-marino-700"
+        >
+          {editando ? 'Guardar cambios' : 'Agregar satisfactor'}
+        </button>
+        {editando && (
+          <button
+            type="button"
+            onClick={onCancelar}
+            className="rounded-md border border-linea px-4 py-2.5 text-sm font-medium text-marino-700 hover:border-marino-300"
+          >
+            Cancelar
+          </button>
+        )}
+      </div>
     </form>
   );
 }

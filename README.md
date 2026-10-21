@@ -17,6 +17,12 @@ estudio como archivo `.json`.
 - **Regla del Singular**: un satisfactor Singular atiende una sola necesidad. Al marcar Singular en
   una necesidad, las demás quedan bloqueadas.
 - **Gráfico de anillos concéntricos** que se actualiza en tiempo real, con un área sombreada por satisfactor que une las necesidades que impacta (se puede ocultar).
+- **Etiqueta emergente**: al pasar el cursor (o tocar) un área del gráfico se muestra el nombre del
+  satisfactor y cómo opera en cada necesidad.
+- **Edición**: cada fila del registro tiene "Editar" para cambiar nombre, categoría y agregar o
+  quitar necesidades y tipos.
+- **Solicitar asesoría**: formulario que abre el programa de correo del usuario con un mensaje para
+  okaconsultores@gmail.com (el sitio es estático, sin servidor de envío).
 - **Tabla de frecuencias** (tipo × necesidad) y **registro** completo de satisfactores.
 - **Descargar informe** en PDF (A4) o imagen PNG.
 

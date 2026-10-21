@@ -1,6 +1,6 @@
 import { TIPO_POR_ID } from '../maxneef.js';
 
-export default function TablaRegistro({ satisfactores, onEliminar, resaltado, onResaltar }) {
+export default function TablaRegistro({ satisfactores, onEliminar, onEditar, editandoId, resaltado, onResaltar }) {
   if (satisfactores.length === 0) {
     return (
       <p className="rounded-lg border border-dashed border-linea px-4 py-8 text-center text-sm text-marino-500">
@@ -29,7 +29,7 @@ export default function TablaRegistro({ satisfactores, onEliminar, resaltado, on
               onMouseEnter={() => onResaltar?.(s.id)}
               onMouseLeave={() => onResaltar?.(null)}
               className={`border-b border-linea/70 align-top transition-colors last:border-0 ${
-                resaltado === s.id ? 'bg-naranja/10' : ''
+                editandoId === s.id ? 'bg-naranja/20' : resaltado === s.id ? 'bg-naranja/10' : ''
               }`}
             >
               <td className="num py-2.5 pr-2 font-mono text-xs text-marino-500">{i + 1}</td>
@@ -50,7 +50,15 @@ export default function TablaRegistro({ satisfactores, onEliminar, resaltado, on
                   ))}
                 </span>
               </td>
-              <td className="py-1.5 text-right" data-html2canvas-ignore>
+              <td className="whitespace-nowrap py-1.5 text-right" data-html2canvas-ignore>
+                <button
+                  type="button"
+                  onClick={() => onEditar(s.id)}
+                  className="rounded px-2 py-1 text-xs font-medium text-marino-700 transition hover:bg-marino/10"
+                  aria-label={`Editar ${s.nombre}`}
+                >
+                  {editandoId === s.id ? 'Editando…' : 'Editar'}
+                </button>
                 <button
                   type="button"
                   onClick={() => onEliminar(s.id)}

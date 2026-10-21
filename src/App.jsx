@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import Asesoria from './components/Asesoria.jsx';
 import FormularioSatisfactor from './components/FormularioSatisfactor.jsx';
 import GraficoPolar from './components/GraficoPolar.jsx';
 import TablaFrecuencias from './components/TablaFrecuencias.jsx';
@@ -46,7 +47,9 @@ export default function App() {
   const [aviso, setAviso] = useState('');
   const [mostrarAreas, setMostrarAreas] = useState(true);
   const [resaltado, setResaltado] = useState(null);
+  const [editandoId, setEditandoId] = useState(null);
   const informeRef = useRef(null);
+  const formularioRef = useRef(null);
   const archivoRef = useRef(null);
 
   const { problema, satisfactores, ejemplo } = estado;
@@ -67,12 +70,25 @@ export default function App() {
 
   const frecuencias = useMemo(() => calcularFrecuencias(satisfactores), [satisfactores]);
   const predominancia = useMemo(() => calcularPredominancia(frecuencias), [frecuencias]);
+  const editando = satisfactores.find((s) => s.id === editandoId) ?? null;
   const necesidadesConDatos = NECESIDADES.filter((n) => frecuencias[n].total > 0).length;
   const empates = NECESIDADES.filter((n) => predominancia[n].length > 1);
 
   const actualizar = (cambios) => setEstado((e) => ({ ...e, ...cambios }));
   const agregar = (s) =>
     setEstado((e) => ({ ...e, satisfactores: [...e.satisfactores, { ...s, id: nuevoId() }] }));
+  const guardarEdicion = (cambios) => {
+    setEstado((e) => ({
+      ...e,
+      satisfactores: e.satisfactores.map((s) => (s.id === editandoId ? { ...s, ...cambios } : s)),
+    }));
+    setEditandoId(null);
+    setAviso('Cambios guardados.');
+  };
+  const empezarEdicion = (id) => {
+    setEditandoId(id);
+    formularioRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
   const eliminar = (id) => {
     setEstado((e) => ({ ...e, satisfactores: e.satisfactores.filter((s) => s.id !== id) }));
     setResaltado(null);
@@ -123,7 +139,18 @@ export default function App() {
               <p className="text-sm text-marino-500">Diseño Participativo orientado a la satisfacción</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <a
+              href="#asesoria"
+              onClick={(ev) => {
+                ev.preventDefault();
+                document.getElementById('asesoria')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                document.getElementById('ase-nombre')?.focus({ preventScroll: true });
+              }}
+              className="rounded-md px-3 py-2 text-sm font-medium text-marino-700 underline-offset-4 transition hover:underline"
+            >
+              Solicitar asesoría
+            </a>
             <button
               type="button"
               onClick={() => exportar('png')}
@@ -166,9 +193,16 @@ export default function App() {
             />
           </section>
 
-          <section className="panel p-4">
-            <h2 className="mb-4 font-display text-lg font-semibold">Registrar satisfactor</h2>
-            <FormularioSatisfactor onAgregar={agregar} />
+          <section ref={formularioRef} className={`panel scroll-mt-4 p-4 ${editando ? 'border-naranja ring-2 ring-naranja/30' : ''}`}>
+            <h2 className="mb-4 font-display text-lg font-semibold">
+              {editando ? `Editar satisfactor ${satisfactores.indexOf(editando) + 1}` : 'Registrar satisfactor'}
+            </h2>
+            <FormularioSatisfactor
+              key={editando?.id ?? 'nuevo'}
+              inicial={editando}
+              onGuardar={editando ? guardarEdicion : agregar}
+              onCancelar={() => setEditandoId(null)}
+            />
           </section>
 
           <section className="flex flex-col gap-2">
@@ -221,6 +255,11 @@ export default function App() {
             <p className="text-xs leading-relaxed text-marino-500">
               Los datos se guardan solo en este navegador. Use “Guardar .json” para conservarlos o compartirlos.
             </p>
+          </section>
+
+          <section id="asesoria" className="panel scroll-mt-4 p-4">
+            <h2 className="mb-3 font-display text-lg font-semibold">Solicitar asesoría</h2>
+            <Asesoria problema={problema} />
           </section>
         </aside>
 
@@ -324,7 +363,14 @@ export default function App() {
 
           <section className="panel flex flex-col gap-3 p-4 sm:p-5">
             <h2 className="font-display text-lg font-semibold">Registro de satisfactores</h2>
-            <TablaRegistro satisfactores={satisfactores} onEliminar={eliminar} resaltado={resaltado} onResaltar={setResaltado} />
+            <TablaRegistro
+              satisfactores={satisfactores}
+              onEliminar={eliminar}
+              onEditar={empezarEdicion}
+              editandoId={editandoId}
+              resaltado={resaltado}
+              onResaltar={setResaltado}
+            />
           </section>
         </main>
       </div>
