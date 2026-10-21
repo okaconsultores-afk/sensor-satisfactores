@@ -21,8 +21,11 @@ estudio como archivo `.json`.
   satisfactor y cómo opera en cada necesidad.
 - **Edición**: cada fila del registro tiene "Editar" para cambiar nombre, categoría y agregar o
   quitar necesidades y tipos.
-- **Solicitar asesoría**: formulario que abre el programa de correo del usuario con un mensaje para
-  okaconsultores@gmail.com (el sitio es estático, sin servidor de envío).
+- **Solicitar asesoría**: formulario que envía el mensaje a okaconsultores@gmail.com mediante
+  [FormSubmit](https://formsubmit.co) (el sitio es estático, sin servidor propio). La primera vez
+  que alguien lo usa, FormSubmit manda a ese correo un mensaje con el botón **Activate Form**; hay
+  que pulsarlo una sola vez para que los siguientes mensajes lleguen. Si el envío falla, se ofrece
+  enviarlo desde el programa de correo del usuario.
 - **Tabla de frecuencias** (tipo × necesidad) y **registro** completo de satisfactores.
 - **Descargar informe** en PDF (A4) o imagen PNG.
 
