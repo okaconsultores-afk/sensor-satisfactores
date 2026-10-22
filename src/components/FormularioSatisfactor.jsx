@@ -18,6 +18,7 @@ export default function FormularioSatisfactor({ inicial, onGuardar, onCancelar }
   const [datos, setDatos] = useState(() => (inicial ? desdeSatisfactor(inicial) : VACIO));
   const [errores, setErrores] = useState({});
   const [nota, setNota] = useState('');
+  const [ayudaTipo, setAyudaTipo] = useState(null); // definición abierta por toque o teclado
 
   const cambiar = (campo, valor) => {
     setDatos((d) => ({ ...d, [campo]: valor }));
@@ -120,20 +121,64 @@ export default function FormularioSatisfactor({ inicial, onGuardar, onCancelar }
           Marque el tipo de satisfactor en cada necesidad que impacta; deje en blanco las demás. Pulse de nuevo un tipo
           para quitarlo.
         </p>
-        <ul className="grid grid-cols-2 gap-x-3 gap-y-1 text-[11px] text-marino-700">
-          {TIPOS.map((t, i) => (
-            <li key={t.id} className="flex items-center gap-1.5" title={t.descripcion}>
-              <span
-                className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full font-mono text-[9px] font-semibold text-white"
-                style={{ background: t.color }}
-              >
-                {i + 1}
-              </span>
-              {t.nombre}
-              {t.id === 'singular' && <span className="text-marino-300">(una sola)</span>}
-            </li>
-          ))}
+        <ul className="grid grid-cols-2 gap-1.5" aria-label="Tipos de satisfactor">
+          {TIPOS.map((t, i) => {
+            const abierta = ayudaTipo === t.id;
+            return (
+              <li key={t.id} className="group relative">
+                <button
+                  type="button"
+                  id={`ayuda-tipo-${t.id}`}
+                  aria-expanded={abierta}
+                  aria-describedby={`def-tipo-${t.id}`}
+                  onClick={() => setAyudaTipo(abierta ? null : t.id)}
+                  onBlur={() => setAyudaTipo((a) => (a === t.id ? null : a))}
+                  className="flex w-full items-center gap-1.5 rounded-full border border-linea bg-white py-1 pl-1 pr-2 text-left text-[11px] font-medium text-marino-700 transition hover:border-marino-300"
+                >
+                  <span
+                    className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full font-mono text-[9px] font-semibold text-white"
+                    style={{ background: t.color }}
+                  >
+                    {i + 1}
+                  </span>
+                  <span className="min-w-0 flex-1 truncate">{t.nombre}</span>
+                  <span
+                    aria-hidden="true"
+                    className="flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full border border-marino-300 font-serif text-[9px] italic leading-none text-marino-500"
+                  >
+                    i
+                  </span>
+                </button>
+                {/* Definición emergente: al pasar el cursor, o al tocar el tipo en el celular */}
+                <div
+                  id={`def-tipo-${t.id}`}
+                  role="tooltip"
+                  className={`pointer-events-none absolute bottom-full z-20 mb-2 w-64 max-w-[calc(100vw-3rem)] overflow-hidden rounded-lg bg-marino text-white shadow-xl group-hover:block ${
+                    abierta ? 'block' : 'hidden'
+                  } ${i % 2 === 0 ? 'left-0' : 'right-0'}`}
+                >
+                  <div className="h-1" style={{ background: t.color }} />
+                  <div className="flex flex-col gap-1.5 px-3 py-2.5">
+                    <p className="flex items-center gap-2 text-sm font-semibold">
+                      <span
+                        className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full font-mono text-[10px] text-white ring-1 ring-white/50"
+                        style={{ background: t.color }}
+                      >
+                        {i + 1}
+                      </span>
+                      {t.nombre}
+                    </p>
+                    <p className="text-xs leading-relaxed text-white/90">{t.descripcion}</p>
+                    <p className="border-t border-white/15 pt-1.5 text-[11px] leading-snug text-white/70">
+                      <span className="font-semibold text-white/85">Ejemplo:</span> {t.ejemplo}
+                    </p>
+                  </div>
+                </div>
+              </li>
+            );
+          })}
         </ul>
+        <p className="text-[11px] text-marino-300">Pase el cursor o toque cada tipo para ver su definición.</p>
 
         <div className="mt-1 flex flex-col divide-y divide-linea/70 rounded-md border border-linea bg-white">
           {NECESIDADES.map((nec) => {

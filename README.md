@@ -22,6 +22,8 @@ estudio como archivo `.json`.
 - **Gráfico siempre visible**: cuando el gráfico principal sale de la pantalla aparece una copia
   flotante en la esquina inferior derecha, que se puede minimizar.
 - **Gráfico de anillos concéntricos** que se actualiza en tiempo real, con un área sombreada por satisfactor que une las necesidades que impacta (se puede ocultar).
+- **Definición de cada tipo**: en "Cómo opera en cada necesidad", cada tipo de satisfactor muestra
+  al pasar el cursor (o al tocarlo en el celular) una definición breve con un ejemplo.
 - **Etiqueta emergente**: al pasar el cursor (o tocar) un área del gráfico se muestra el nombre del
   satisfactor y su categoría (p. ej. "Talleres de co-creación lúdica, forma de HACER").
 - **Edición**: cada fila del registro tiene "Editar" para cambiar nombre, categoría y agregar o
