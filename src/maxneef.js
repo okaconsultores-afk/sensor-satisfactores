@@ -14,6 +14,14 @@ export const NECESIDADES = [
 
 export const CATEGORIAS = ['Ser', 'Tener', 'Hacer', 'Estar'];
 
+// Orientación breve para elegir la categoría existencial de un satisfactor
+export const DESCRIPCION_CATEGORIA = {
+  Ser: 'Atributos personales o colectivos.',
+  Tener: 'Instituciones, normas, herramientas (no necesariamente materiales).',
+  Hacer: 'Acciones personales o colectivas.',
+  Estar: 'Espacios, lugares, ambientes.',
+};
+
 // El orden es la convención de lectura de los anillos, del centro hacia afuera.
 // Es ordinal: no expresa cantidad ni se promedia.
 export const TIPOS = [
@@ -126,26 +134,27 @@ export function normalizarSatisfactor(s) {
 
 const imp = (pares) => Object.entries(pares).map(([necesidad, tipo]) => ({ necesidad, tipo }));
 
+export const EJEMPLO_PROBLEMA =
+  'En una investigación con víctimas del conflicto armado en Colombia nos preguntamos: ¿Cuándo una respuesta lúdica digital co-diseñada con víctimas del conflicto armado puede agenciar la convivencia pacífica?';
+
 export const EJEMPLO = {
-  problema:
-    '¿De qué manera los satisfactores presentes en la vida comunitaria del barrio inciden en la realización de las necesidades humanas fundamentales de sus jóvenes?',
+  problema: EJEMPLO_PROBLEMA,
   satisfactores: [
-    { nombre: 'Huerta comunitaria autogestionada', categoria: 'Hacer', impactos: imp({ Subsistencia: 'sinergico', Entendimiento: 'sinergico', 'Participación': 'sinergico', Identidad: 'sinergico' }) },
-    { nombre: 'Asamblea vecinal mensual', categoria: 'Estar', impactos: imp({ 'Participación': 'sinergico', Identidad: 'sinergico', Libertad: 'sinergico' }) },
-    { nombre: 'Videojuegos en solitario por horas', categoria: 'Hacer', impactos: imp({ Afecto: 'inhibidor', Ocio: 'pseudo', 'Creación': 'inhibidor' }) },
-    { nombre: 'Cámaras de vigilancia en la calle', categoria: 'Tener', impactos: imp({ 'Protección': 'pseudo', Libertad: 'pseudo' }) },
-    { nombre: 'Presencia de pandillas armadas', categoria: 'Estar', impactos: imp({ 'Protección': 'destructor', Afecto: 'pseudo', Identidad: 'pseudo', Libertad: 'destructor' }) },
-    { nombre: 'Comedor escolar', categoria: 'Tener', impactos: imp({ Subsistencia: 'singular' }) },
-    { nombre: 'Clases memorísticas y verticales', categoria: 'Hacer', impactos: imp({ Entendimiento: 'pseudo', 'Creación': 'destructor', Ocio: 'inhibidor' }) },
-    { nombre: 'Familia sobreprotectora', categoria: 'Ser', impactos: imp({ 'Protección': 'inhibidor', Afecto: 'sinergico', Libertad: 'inhibidor' }) },
-    { nombre: 'Grupo de música tradicional', categoria: 'Hacer', impactos: imp({ Afecto: 'sinergico', Ocio: 'sinergico', 'Creación': 'sinergico', Identidad: 'sinergico' }) },
-    { nombre: 'Consumo de alcohol en fiestas', categoria: 'Hacer', impactos: imp({ Afecto: 'pseudo', Ocio: 'destructor' }) },
-    { nombre: 'Biblioteca barrial', categoria: 'Estar', impactos: imp({ Entendimiento: 'singular' }) },
-    { nombre: 'Extorsión a comercios locales', categoria: 'Estar', impactos: imp({ Subsistencia: 'destructor', 'Protección': 'destructor' }) },
-    { nombre: 'Mercado de trueque', categoria: 'Hacer', impactos: imp({ Subsistencia: 'singular' }) },
-    { nombre: 'Taller de lectura entre generaciones', categoria: 'Hacer', impactos: imp({ Afecto: 'sinergico', Entendimiento: 'sinergico', 'Creación': 'sinergico' }) },
-    { nombre: 'Torneo de fútbol barrial', categoria: 'Hacer', impactos: imp({ Afecto: 'sinergico', 'Participación': 'sinergico', Ocio: 'sinergico' }) },
-    { nombre: 'Centro comercial como único lugar de encuentro', categoria: 'Estar', impactos: imp({ Ocio: 'pseudo', Identidad: 'pseudo', 'Participación': 'inhibidor' }) },
-    { nombre: 'Toque de queda impuesto por grupos ilegales', categoria: 'Estar', impactos: imp({ 'Participación': 'destructor', Libertad: 'destructor', 'Protección': 'destructor' }) },
+    { nombre: 'Talleres de co-creación lúdica', categoria: 'Hacer', impactos: imp({ Afecto: 'sinergico', Entendimiento: 'sinergico', 'Participación': 'sinergico', 'Creación': 'sinergico', Identidad: 'sinergico' }) },
+    { nombre: 'Videojuego cooperativo co-diseñado', categoria: 'Tener', impactos: imp({ Entendimiento: 'sinergico', Ocio: 'sinergico', 'Creación': 'sinergico', Identidad: 'sinergico' }) },
+    { nombre: 'Círculos de memoria y relato', categoria: 'Estar', impactos: imp({ Afecto: 'sinergico', Entendimiento: 'sinergico', Identidad: 'sinergico' }) },
+    { nombre: 'Juego de rol sobre reconciliación', categoria: 'Hacer', impactos: imp({ Entendimiento: 'sinergico', 'Participación': 'sinergico', Libertad: 'sinergico' }) },
+    { nombre: 'Proyectos productivos asociativos', categoria: 'Hacer', impactos: imp({ Subsistencia: 'sinergico', 'Participación': 'sinergico', Identidad: 'sinergico' }) },
+    { nombre: 'Ayuda humanitaria asistencialista', categoria: 'Tener', impactos: imp({ Subsistencia: 'singular' }) },
+    { nombre: 'Subsidio de transporte', categoria: 'Tener', impactos: imp({ Subsistencia: 'singular' }) },
+    { nombre: 'Ludoteca comunitaria', categoria: 'Estar', impactos: imp({ Ocio: 'singular' }) },
+    { nombre: 'Estigmatización como “víctimas”', categoria: 'Ser', impactos: imp({ 'Participación': 'inhibidor', Identidad: 'destructor', Libertad: 'destructor' }) },
+    { nombre: 'Presencia de actores armados en el territorio', categoria: 'Estar', impactos: imp({ 'Protección': 'destructor', 'Participación': 'destructor', Libertad: 'destructor' }) },
+    { nombre: 'Esquemas de protección con escoltas', categoria: 'Tener', impactos: imp({ 'Protección': 'pseudo', Libertad: 'inhibidor' }) },
+    { nombre: 'Redes sociales con discursos de odio', categoria: 'Estar', impactos: imp({ Afecto: 'destructor', Entendimiento: 'pseudo', Identidad: 'destructor' }) },
+    { nombre: 'Juegos de azar como única recreación', categoria: 'Hacer', impactos: imp({ Subsistencia: 'destructor', Ocio: 'pseudo' }) },
+    { nombre: 'Desconfianza entre vecinos', categoria: 'Ser', impactos: imp({ 'Protección': 'destructor', Afecto: 'inhibidor', 'Participación': 'inhibidor' }) },
+    { nombre: 'Mesa de participación burocratizada', categoria: 'Tener', impactos: imp({ 'Participación': 'pseudo', Identidad: 'pseudo' }) },
+    { nombre: 'Videojuegos violentos comerciales', categoria: 'Tener', impactos: imp({ Ocio: 'pseudo', 'Creación': 'inhibidor', Afecto: 'inhibidor' }) },
   ],
 };

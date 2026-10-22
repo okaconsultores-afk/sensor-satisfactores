@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CATEGORIAS, NECESIDADES, TIPOS, validarImpactos } from '../maxneef.js';
+import { CATEGORIAS, DESCRIPCION_CATEGORIA, NECESIDADES, TIPOS, validarImpactos } from '../maxneef.js';
 
 const VACIO = { nombre: '', categoria: 'Ser', impactos: {} };
 
@@ -71,7 +71,7 @@ export default function FormularioSatisfactor({ inicial, onGuardar, onCancelar }
         <input
           id="sat-nombre"
           className="campo"
-          placeholder="Ej.: Huerta comunitaria autogestionada"
+          placeholder="Ej.: Talleres de co-creación lúdica"
           value={datos.nombre}
           onChange={(e) => cambiar('nombre', e.target.value)}
           aria-invalid={!!errores.nombre}
@@ -80,10 +80,10 @@ export default function FormularioSatisfactor({ inicial, onGuardar, onCancelar }
       </div>
 
       <fieldset className="flex flex-col gap-1.5">
-        <legend className="etiqueta mb-1.5">Categoría existencial (formas de)</legend>
+        <legend className="etiqueta mb-1.5">Categorizado como forma de:</legend>
         <div className="grid grid-cols-4 gap-1 rounded-md bg-papel p-1">
-          {CATEGORIAS.map((c) => (
-            <label key={c} className="cursor-pointer">
+          {CATEGORIAS.map((c, i) => (
+            <label key={c} className="group relative cursor-pointer">
               <input
                 type="radio"
                 name="sat-categoria"
@@ -96,9 +96,22 @@ export default function FormularioSatisfactor({ inicial, onGuardar, onCancelar }
               <span className="block rounded px-2 py-1.5 text-center text-sm text-marino-500 transition peer-checked:bg-white peer-checked:font-semibold peer-checked:text-marino peer-checked:shadow-sm peer-focus-visible:ring-2 peer-focus-visible:ring-naranja">
                 {c}
               </span>
+              {/* Ayuda emergente al pasar el cursor o enfocar con el teclado */}
+              <span
+                role="tooltip"
+                className={`pointer-events-none absolute bottom-full z-20 mb-2 hidden w-52 rounded-md bg-marino px-3 py-2 text-xs leading-snug text-white shadow-lg group-hover:block group-focus-within:block ${
+                  i === 0 ? 'left-0' : i === CATEGORIAS.length - 1 ? 'right-0' : 'left-1/2 -translate-x-1/2'
+                }`}
+              >
+                <strong className="font-semibold uppercase tracking-wide">{c}:</strong> {DESCRIPCION_CATEGORIA[c]}
+              </span>
             </label>
           ))}
         </div>
+        <p className="text-xs leading-relaxed text-marino-500">
+          <strong className="font-semibold uppercase text-marino-700">{datos.categoria}:</strong>{' '}
+          {DESCRIPCION_CATEGORIA[datos.categoria]}
+        </p>
       </fieldset>
 
       <fieldset className="flex flex-col gap-2">

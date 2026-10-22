@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Asesoria from './components/Asesoria.jsx';
 import FormularioSatisfactor from './components/FormularioSatisfactor.jsx';
+import GraficoFlotante from './components/GraficoFlotante.jsx';
 import GraficoPolar from './components/GraficoPolar.jsx';
 import TablaFrecuencias from './components/TablaFrecuencias.jsx';
 import TablaRegistro from './components/TablaRegistro.jsx';
-import { EJEMPLO, NECESIDADES, TIPOS, calcularFrecuencias, calcularPredominancia, normalizarSatisfactor } from './maxneef.js';
+import { EJEMPLO, EJEMPLO_PROBLEMA, NECESIDADES, TIPOS, calcularFrecuencias, calcularPredominancia, normalizarSatisfactor } from './maxneef.js';
 
 const CLAVE = 'evaluador-max-neef:v1';
+const CLAVE_MINIMIZADO = 'evaluador-max-neef:grafico-minimizado';
 const nuevoId = () => Math.random().toString(36).slice(2, 10);
 
 function estadoInicial() {
@@ -50,6 +52,35 @@ export default function App() {
   const [editandoId, setEditandoId] = useState(null);
   const informeRef = useRef(null);
   const formularioRef = useRef(null);
+  const graficoRef = useRef(null);
+  const [graficoEnPantalla, setGraficoEnPantalla] = useState(true);
+  const [flotanteMinimizado, setFlotanteMinimizado] = useState(() => {
+    try {
+      return localStorage.getItem(CLAVE_MINIMIZADO) === '1';
+    } catch {
+      return false;
+    }
+  });
+
+  // El gráfico flotante aparece cuando el gráfico principal deja de verse
+  useEffect(() => {
+    const el = graficoRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+    const obs = new IntersectionObserver(([entrada]) => setGraficoEnPantalla(entrada.isIntersecting), {
+      threshold: 0.2,
+    });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  const minimizarFlotante = (valor) => {
+    setFlotanteMinimizado(valor);
+    try {
+      localStorage.setItem(CLAVE_MINIMIZADO, valor ? '1' : '0');
+    } catch {
+      /* sin almacenamiento disponible */
+    }
+  };
   const archivoRef = useRef(null);
 
   const { problema, satisfactores, ejemplo } = estado;
@@ -176,7 +207,11 @@ export default function App() {
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-[1500px] grid-cols-1 gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[360px_minmax(0,1fr)]">
+      <div
+        className={`mx-auto grid max-w-[1500px] grid-cols-1 gap-6 px-4 pt-6 sm:px-6 lg:grid-cols-[360px_minmax(0,1fr)] ${
+          !graficoEnPantalla && !flotanteMinimizado ? 'pb-[22rem]' : 'pb-6'
+        }`}
+      >
         {/* Panel de entrada */}
         <aside className="flex flex-col gap-6 lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:self-start lg:overflow-y-auto lg:pr-1">
           <section className="flex flex-col gap-2">
@@ -187,7 +222,7 @@ export default function App() {
               id="problema"
               rows={4}
               className="campo resize-y leading-relaxed"
-              placeholder="Escriba aquí el problema que orienta la evaluación…"
+              placeholder={`Ej.: ${EJEMPLO_PROBLEMA}`}
               value={problema}
               onChange={(e) => actualizar({ problema: e.target.value })}
             />
@@ -301,7 +336,7 @@ export default function App() {
           </section>
 
           <div className="grid grid-cols-1 gap-6 2xl:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
-            <section className="panel flex flex-col p-4 sm:p-5">
+            <section ref={graficoRef} className="panel flex scroll-mt-4 flex-col p-4 sm:p-5">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <h2 className="font-display text-lg font-semibold">Tipo predominante por necesidad</h2>
                 <label htmlFor="mostrar-areas" className="flex cursor-pointer items-center gap-2 text-sm text-marino-700" data-html2canvas-ignore>
@@ -375,10 +410,27 @@ export default function App() {
         </main>
       </div>
 
+      {!graficoEnPantalla && !exportando && (
+        <GraficoFlotante
+          minimizado={flotanteMinimizado}
+          onMinimizar={minimizarFlotante}
+          onIrAlGrafico={() => graficoRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+        >
+          <GraficoPolar
+            frecuencias={frecuencias}
+            predominancia={predominancia}
+            satisfactores={satisfactores}
+            mostrarAreas={mostrarAreas}
+            resaltado={resaltado}
+            onResaltar={setResaltado}
+          />
+        </GraficoFlotante>
+      )}
+
       {aviso && (
         <div
           role="status"
-          className="fixed bottom-4 left-1/2 z-20 -translate-x-1/2 rounded-md bg-marino px-4 py-2.5 text-sm text-white shadow-lg"
+          className="fixed bottom-4 left-1/2 z-40 -translate-x-1/2 rounded-md bg-marino px-4 py-2.5 text-sm text-white shadow-lg"
         >
           {aviso}
         </div>

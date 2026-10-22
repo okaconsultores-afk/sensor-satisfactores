@@ -211,25 +211,17 @@ export default function GraficoPolar({
       {etiqueta && (
         <div
           role="tooltip"
-          className="pointer-events-none absolute z-10 w-max max-w-[260px] rounded-lg bg-marino px-3 py-2 text-white shadow-lg"
+          className="pointer-events-none absolute z-10 w-max max-w-[220px] rounded-lg bg-marino px-3 py-2 text-white shadow-lg"
           style={{
-            left: Math.min(Math.max(etiqueta.x, 130), etiqueta.ancho - 130),
+            left: Math.min(Math.max(etiqueta.x, 110), etiqueta.ancho - 110),
             top: etiqueta.y - 14,
             transform: 'translate(-50%, -100%)',
           }}
         >
-          <p className="text-sm font-semibold leading-snug">{etiqueta.satisfactor.nombre}</p>
-          <ul className="mt-1 flex flex-col gap-0.5 text-xs text-white/85">
-            {etiqueta.satisfactor.impactos.map(({ necesidad, tipo }) => (
-              <li key={necesidad} className="flex items-center gap-1.5">
-                <span
-                  className="h-2 w-2 shrink-0 rounded-full ring-1 ring-white/60"
-                  style={{ background: TIPO_POR_ID[tipo].color }}
-                />
-                {necesidad} · {TIPO_POR_ID[tipo].nombre}
-              </li>
-            ))}
-          </ul>
+          <p className="text-sm leading-snug">
+            <span className="font-semibold">{etiqueta.satisfactor.nombre}</span>
+            <span className="text-white/80">, forma de {etiqueta.satisfactor.categoria.toUpperCase()}</span>
+          </p>
         </div>
       )}
     </div>

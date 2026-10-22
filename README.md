@@ -16,9 +16,14 @@ estudio como archivo `.json`.
   para Creación, destructor para Entendimiento e inhibidor para Ocio.
 - **Regla del Singular**: un satisfactor Singular atiende una sola necesidad. Al marcar Singular en
   una necesidad, las demás quedan bloqueadas.
+- **Ayudas para personas no expertas**: ejemplos en los campos, y descripción emergente de cada
+  categoría (Ser: atributos personales o colectivos; Tener: instituciones, normas, herramientas;
+  Hacer: acciones personales o colectivas; Estar: espacios, lugares, ambientes).
+- **Gráfico siempre visible**: cuando el gráfico principal sale de la pantalla aparece una copia
+  flotante en la esquina inferior derecha, que se puede minimizar.
 - **Gráfico de anillos concéntricos** que se actualiza en tiempo real, con un área sombreada por satisfactor que une las necesidades que impacta (se puede ocultar).
 - **Etiqueta emergente**: al pasar el cursor (o tocar) un área del gráfico se muestra el nombre del
-  satisfactor y cómo opera en cada necesidad.
+  satisfactor y su categoría (p. ej. "Talleres de co-creación lúdica, forma de HACER").
 - **Edición**: cada fila del registro tiene "Editar" para cambiar nombre, categoría y agregar o
   quitar necesidades y tipos.
 - **Solicitar asesoría**: formulario que envía el mensaje a okaconsultores@gmail.com mediante
