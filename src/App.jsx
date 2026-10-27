@@ -142,6 +142,31 @@ export default function App() {
     }
   };
 
+  // Exportación vectorial: 'svg' = informe completo, 'svg-grafico' = solo el gráfico de anillos
+  const exportarSVG = async (formato) => {
+    setExportando(formato);
+    setResaltado(null);
+    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    try {
+      const { svgInforme, svgSoloGrafico, descargarSVG } = await import('./exportarSVG.js');
+      const svgEnPantalla = graficoRef.current.querySelector('svg[role="img"]');
+      const hoy = new Date().toISOString().slice(0, 10);
+      if (formato === 'svg') {
+        const contenido = await svgInforme({ svgEnPantalla, problema, satisfactores, frecuencias, predominancia, fecha });
+        descargarSVG(contenido, `sensor-satisfactores-${hoy}.svg`);
+        setAviso('Informe SVG descargado.');
+      } else {
+        descargarSVG(svgSoloGrafico(svgEnPantalla), `grafico-satisfactores-${hoy}.svg`);
+        setAviso('Gráfico SVG descargado.');
+      }
+    } catch (err) {
+      console.error(err);
+      setAviso('No se pudo generar el archivo SVG. Intente de nuevo o use otro navegador.');
+    } finally {
+      setExportando(null);
+    }
+  };
+
   const importar = async (ev) => {
     const archivo = ev.target.files?.[0];
     ev.target.value = '';
@@ -182,6 +207,15 @@ export default function App() {
             >
               Solicitar asesoría
             </a>
+            <button
+              type="button"
+              onClick={() => exportarSVG('svg')}
+              disabled={!!exportando}
+              title="Informe completo en formato vectorial (SVG), editable en Inkscape, Illustrator o Figma"
+              className="rounded-md border border-linea px-3 py-2 text-sm font-medium text-marino-700 transition hover:border-marino-300 disabled:opacity-50"
+            >
+              {exportando === 'svg' ? 'Generando…' : 'Informe SVG'}
+            </button>
             <button
               type="button"
               onClick={() => exportar('png')}
@@ -350,6 +384,15 @@ export default function App() {
                   Áreas por satisfactor
                 </label>
               </div>
+              <button
+                type="button"
+                onClick={() => exportarSVG('svg-grafico')}
+                disabled={!!exportando}
+                className="mt-1 self-start rounded-md border border-linea px-2.5 py-1 text-xs font-medium text-marino-700 transition hover:border-marino-300 disabled:opacity-50"
+                data-html2canvas-ignore
+              >
+                {exportando === 'svg-grafico' ? 'Generando…' : 'Descargar gráfico (SVG)'}
+              </button>
               <div className="flex justify-center py-2">
                 <GraficoPolar
                   frecuencias={frecuencias}

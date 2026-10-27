@@ -34,7 +34,8 @@ estudio como archivo `.json`.
   que pulsarlo una sola vez para que los siguientes mensajes lleguen. Si el envío falla, se ofrece
   enviarlo desde el programa de correo del usuario.
 - **Tabla de frecuencias** (tipo × necesidad) y **registro** completo de satisfactores.
-- **Descargar informe** en PDF (A4) o imagen PNG.
+- **Descargar informe** en PDF (A4), imagen PNG o **SVG vectorial** (texto y formas editables en
+  Inkscape, Illustrator o Figma). También se puede descargar solo el gráfico de anillos en SVG.
 
 ## Lógica del gráfico
 
